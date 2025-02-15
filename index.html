@@ -807,9 +807,18 @@ async function winnercheck(myselectcard,youselectcard){
     if (myselectcard == 4 || youselectcard == 4) {
         [mybeforecard, youbeforecard] = [youbeforecard, mybeforecard];
     }
-    
-    mybeforecardtmp = myselectcard;
-    youbeforecardtmp = youselectcard;
+    if(mybeforecardtmp==""){
+      before1 = "";
+    }else{
+      before1 = mybeforecard;
+    }
+    if(youbeforecardtmp==""){
+      before2 = "";
+    }else{
+      before1 = youbeforecard;
+    }
+    mybeforecardtmp = mybeforecard;
+    youbeforecardtmp = youbeforecard;
     
     if (winner == "my") {
       return "1p";
