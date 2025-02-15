@@ -715,23 +715,26 @@
                 tenten++;
             }
         }
-var mybeforecard = "";
-var youbeforecard = "";
-var mybeforecardtmp = "";
-var youbeforecardtmp = "";
+
+var before1 = "";
+var before2 = "";
+var before1tmp = "";
+var before2tmp = "";
 var winner = "";
 function winnercheck(myselectcard,youselectcard){
+    mycards.push(myselectcard);
+    yourcards.push(youselectcard);
     if (myselectcard != youselectcard && myselectcard != 5 && youselectcard != 5) {
         if (myselectcard > youselectcard) {
-            if (mybeforecard == 9 || youbeforecard == 9) {
+            if (before1 == 9 || before2 == 9) {
                 winner = "you";
             } else {
                 winner = "my";
             }
-            if (youbeforecard == 6 && myselectcard - youselectcard < 2) {
+            if (before2 == 6 && myselectcard - youselectcard < 2) {
                 winner = "drow";
             }
-            if (youselectcard != 5 && mybeforecard != 8) {
+            if (youselectcard != 5 && before1 != 8) {
                 if (youselectcard == 1 && myselectcard == 10) {
                     winner = "you";
                 }
@@ -740,7 +743,7 @@ function winnercheck(myselectcard,youselectcard){
                 }
             }
         } else {
-            if (mybeforecard == 9 || youbeforecard == 9) {
+            if (before1 == 9 || before2 == 9) {
                 winner = "my";
             } else {
                 winner = "you";
@@ -748,7 +751,7 @@ function winnercheck(myselectcard,youselectcard){
             if (myselectcard == 6 && youselectcard - myselectcard < 2) {
                 winner = "drow";
             }
-            if (myselectcard != 5 && youbeforecard != 8) {
+            if (myselectcard != 5 && before2 != 8) {
                 if (myselectcard == 1 && youselectcard == 10) {
                     winner = "my";
                 }
@@ -758,15 +761,15 @@ function winnercheck(myselectcard,youselectcard){
             }
         }
     } else {
-        if (myselectcard == 5 && youbeforecard == 8) {
-            if (mybeforecard == 9 || youbeforecard == 9) {
+        if (myselectcard == 5 && before2 == 8) {
+            if (before1 == 9 || before2 == 9) {
                 winner = "my";
             } else {
                 winner = "you";
             }
         }
-        if (youselectcard == 5 && mybeforecard == 8) {
-            if (mybeforecard == 9 || youbeforecard == 9) {
+        if (youselectcard == 5 && before1 == 8) {
+            if (before1 == 9 || before2 == 9) {
                 winner = "you";
             } else {
                 winner = "my";
@@ -777,28 +780,28 @@ function winnercheck(myselectcard,youselectcard){
         }
     }
 
-    if (myselectcard == 7 && youbeforecard != 8) {
+    if (myselectcard == 7 && before2 != 8) {
       console.log("ランダムに引く1p2p")
     }
-    if (youselectcard == 7 && mybeforecard != 8) {
+    if (youselectcard == 7 && before1 != 8) {
       console.log("ランダムに引く1p2p")
     }
     
-    mybeforecard = myselectcard;
-    youbeforecard = youselectcard;
+    before1 = myselectcard;
+    before2 = youselectcard;
     
     if (myselectcard == 8 && winner == "you") {
-        youbeforecard = "";
+        before2 = "";
     }
     if (youselectcard == 8 && winner == "my") {
-        mybeforecard = "";
+        before1 = "";
     }
     if (myselectcard == 4 || youselectcard == 4) {
-        [mybeforecard, youbeforecard] = [youbeforecard, mybeforecard];
+        [before1, before2] = [before2, before1];
     }
     
-    mybeforecardtmp = myselectcard;
-    youbeforecardtmp = youselectcard;
+    before1tmp = myselectcard;
+    before2tmp = youselectcard;
     
     if (winner == "my") {
       return "1p";
