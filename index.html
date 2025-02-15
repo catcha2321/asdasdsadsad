@@ -715,104 +715,101 @@
                 tenten++;
             }
         }
-        var before1 = 0;
-        var before2 = 0;
-        var after1 = 0;
-        var after2 = 0;
-        var keep = 0;
-        var back = 0;
-        var play = 0;
-        var draw = 0;
-        function winnercheck(p1, p2) {
-            draw = 0;
-            mycards.push(p1);
-            yourcards.push(p2);
-            if (p1 == 4 || p2 == 4) {
-                keep = p1;
-                p1 = p2;
-                p2 = keep;
+var mybeforecard = "";
+var youbeforecard = "";
+var mybeforecardtmp = "";
+var youbeforecardtmp = "";
+var winner = "";
+function winnercheck(myselectcard,youselectcard){
+    if (myselectcard != youselectcard && myselectcard != 5 && youselectcard != 5) {
+        if (myselectcard > youselectcard) {
+            if (mybeforecard == 9 || youbeforecard == 9) {
+                winner = "you";
+            } else {
+                winner = "my";
             }
-            if (before1 != 8) {
-                if (before2 == 6) {
-                    after1 = p1 - 1;
-                    play = 1;
+            if (youbeforecard == 6 && myselectcard - youselectcard < 2) {
+                winner = "drow";
+            }
+            if (youselectcard != 5 && mybeforecard != 8) {
+                if (youselectcard == 1 && myselectcard == 10) {
+                    winner = "you";
                 }
-                if (before2 == 9) {
-                    back = 1;
-                    play = 1;
-                }
-                if (p2 == 1) {
-                    if (p1 == 10) {
-                        after2 = 11;
-                        back = 0;
-                    }
-                }
-                if (p2 == 5) {
-                    draw = 1;
-                    play = 1;
+                if (youselectcard == 4) {
+                    winner = "you";
                 }
             }
-            if (play == 0) {
-                after2 = after2 + p2;
+        } else {
+            if (mybeforecard == 9 || youbeforecard == 9) {
+                winner = "my";
+            } else {
+                winner = "you";
             }
-            play = 0;
-
-
-
-            if (before2 != 8) {
-                if (before1 == 6) {
-                    after2 = p2 - 1;
-                    play = 1;
+            if (myselectcard == 6 && youselectcard - myselectcard < 2) {
+                winner = "drow";
+            }
+            if (myselectcard != 5 && youbeforecard != 8) {
+                if (myselectcard == 1 && youselectcard == 10) {
+                    winner = "my";
                 }
-                if (before1 == 9) {
-                    back = 1;
-                    play = 1;
+                if (myselectcard == 4) {
+                    winner = "my";
                 }
-                if (p1 == 1) {
-                    if (p2 == 10) {
-                        after1 = 11;
-                        back = 0;
-                    }
-                }
-                if (p1 == 5) {
-                    draw = 1;
-                    play = 1;
-                }
-            }
-            if (play == 0) {
-                after1 = after1 + p1;
-            }
-            play = 0;
-
-            console.log(after1);
-            console.log(after2);
-
-            if (back == 1) {
-                after1 = 11 - after1;
-                after2 = 11 - after2;
-            }
-            if (draw == 1) {
-                after1 = 0;
-                after2 = 0;
-            }
-            before1 = p1;
-            before2 = p2;
-            if (after1 > after2) {
-                after1 = 0;
-                after2 = 0;
-                return "1p";
-            }
-            if (after1 < after2) {
-                after1 = 0;
-                after2 = 0;
-                return "2p";
-            }
-            if (after1 == after2) {
-                after1 = 0;
-                after2 = 0;
-                return "draw";
             }
         }
+    } else {
+        if (myselectcard == 5 && youbeforecard == 8) {
+            if (mybeforecard == 9 || youbeforecard == 9) {
+                winner = "my";
+            } else {
+                winner = "you";
+            }
+        }
+        if (youselectcard == 5 && mybeforecard == 8) {
+            if (mybeforecard == 9 || youbeforecard == 9) {
+                winner = "you";
+            } else {
+                winner = "my";
+            }
+        }
+        if ((youselectcard != 8 && myselectcard != 8)||(youselectcard == 8 && myselectcard == 8)) {
+            winner = "drow";
+        }
+    }
+
+    if (myselectcard == 7 && youbeforecard != 8) {
+      console.log("ランダムに引く1p2p")
+    }
+    if (youselectcard == 7 && mybeforecard != 8) {
+      console.log("ランダムに引く1p2p")
+    }
+    
+    mybeforecard = myselectcard;
+    youbeforecard = youselectcard;
+    
+    if (myselectcard == 8 && winner == "you") {
+        youbeforecard = "";
+    }
+    if (youselectcard == 8 && winner == "my") {
+        mybeforecard = "";
+    }
+    if (myselectcard == 4 || youselectcard == 4) {
+        [mybeforecard, youbeforecard] = [youbeforecard, mybeforecard];
+    }
+    
+    mybeforecardtmp = myselectcard;
+    youbeforecardtmp = youselectcard;
+    
+    if (winner == "my") {
+      return "1p";
+    }
+    if (winner == "you") {
+      return "2p";
+    }
+    if (winner == "drow") {
+      return "draw";
+    }
+}
         async function runModel() {
             let tmp = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             let daserucard = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
