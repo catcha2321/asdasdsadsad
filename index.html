@@ -63,6 +63,8 @@
         let youready = false;
         let whoiswinner = "";
         let truefalse = false;
+        let cardmode = "normal";
+        let thisglobal;
 
         const cardWidth = 100;
         const cardHeight = 150;
@@ -114,7 +116,12 @@
                 // カードクリック時の処理
                 card.on('pointerdown', () => {
                     if (dialoghyouzityuu == "no") {
-                        onCardClick(card, this);
+                        if(cardmode=="normal"){
+                            onCardClick(card, this);
+                        }
+                        if(cardmode=="sevenattack"){
+                            truefalse = false;
+                        }
                     }
                 });
                 card.on('pointerover', () => {
@@ -252,6 +259,7 @@
             sentakutyuucardyou = await runModel();
             //sentakutyuucardyou = 10;
             aitecard(this);
+            thisglobal = this;
         }
 
         function onCardClick(card, that) {
@@ -320,7 +328,7 @@
             while (truefalse) {
                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
             }
-            var returndata = winnercheck(sentakutyuucard, sentakutyuucardyou);
+            var returndata = await winnercheck(sentakutyuucard, sentakutyuucardyou);
             console.log(returndata)
             whoiswinner = returndata;
             if (returndata == "1p") {
@@ -716,25 +724,25 @@
             }
         }
 
-var before1 = "";
-var before2 = "";
-var before1tmp = "";
-var before2tmp = "";
+var mybeforecard = "";
+var youbeforecard = "";
+var mybeforecardtmp = "";
+var youbeforecardtmp = "";
 var winner = "";
-function winnercheck(myselectcard,youselectcard){
+async function winnercheck(myselectcard,youselectcard){
     mycards.push(myselectcard);
     yourcards.push(youselectcard);
     if (myselectcard != youselectcard && myselectcard != 5 && youselectcard != 5) {
         if (myselectcard > youselectcard) {
-            if (before1 == 9 || before2 == 9) {
+            if (mybeforecard == 9 || youbeforecard == 9) {
                 winner = "you";
             } else {
                 winner = "my";
             }
-            if (before2 == 6 && myselectcard - youselectcard < 2) {
+            if (youbeforecard == 6 && myselectcard - youselectcard < 2) {
                 winner = "drow";
             }
-            if (youselectcard != 5 && before1 != 8) {
+            if (youselectcard != 5 && mybeforecard != 8) {
                 if (youselectcard == 1 && myselectcard == 10) {
                     winner = "you";
                 }
@@ -743,7 +751,7 @@ function winnercheck(myselectcard,youselectcard){
                 }
             }
         } else {
-            if (before1 == 9 || before2 == 9) {
+            if (mybeforecard == 9 || youbeforecard == 9) {
                 winner = "my";
             } else {
                 winner = "you";
@@ -751,7 +759,7 @@ function winnercheck(myselectcard,youselectcard){
             if (myselectcard == 6 && youselectcard - myselectcard < 2) {
                 winner = "drow";
             }
-            if (myselectcard != 5 && before2 != 8) {
+            if (myselectcard != 5 && youbeforecard != 8) {
                 if (myselectcard == 1 && youselectcard == 10) {
                     winner = "my";
                 }
@@ -761,47 +769,47 @@ function winnercheck(myselectcard,youselectcard){
             }
         }
     } else {
-        if (myselectcard == 5 && before2 == 8) {
-            if (before1 == 9 || before2 == 9) {
+        winner = "drow";
+        if (myselectcard == 5 && youbeforecard == 8) {
+            if (mybeforecard == 9 || youbeforecard == 9) {
                 winner = "my";
             } else {
                 winner = "you";
             }
         }
-        if (youselectcard == 5 && before1 == 8) {
-            if (before1 == 9 || before2 == 9) {
+        if (youselectcard == 5 && mybeforecard == 8) {
+            if (mybeforecard == 9 || youbeforecard == 9) {
                 winner = "you";
             } else {
                 winner = "my";
             }
-        }
-        if ((youselectcard != 8 && myselectcard != 8)||(youselectcard == 8 && myselectcard == 8)) {
-            winner = "drow";
         }
     }
 
-    if (myselectcard == 7 && before2 != 8) {
+    if (myselectcard == 7 && youbeforecard != 8) {
       console.log("ランダムに引く1p2p")
+      //await sevencardattack();
     }
-    if (youselectcard == 7 && before1 != 8) {
+    if (youselectcard == 7 && mybeforecard != 8) {
       console.log("ランダムに引く1p2p")
+      //await sevencardattack();
     }
     
-    before1 = myselectcard;
-    before2 = youselectcard;
+    mybeforecard = myselectcard;
+    youbeforecard = youselectcard;
     
     if (myselectcard == 8 && winner == "you") {
-        before2 = "";
+        youbeforecard = "";
     }
     if (youselectcard == 8 && winner == "my") {
-        before1 = "";
+        mybeforecard = "";
     }
     if (myselectcard == 4 || youselectcard == 4) {
-        [before1, before2] = [before2, before1];
+        [mybeforecard, youbeforecard] = [youbeforecard, mybeforecard];
     }
     
-    before1tmp = myselectcard;
-    before2tmp = youselectcard;
+    mybeforecardtmp = myselectcard;
+    youbeforecardtmp = youselectcard;
     
     if (winner == "my") {
       return "1p";
@@ -813,6 +821,49 @@ function winnercheck(myselectcard,youselectcard){
       return "draw";
     }
 }
+        async function sevencardattack(whoattack) {
+            thisglobal.tweens.add({
+                targets: mycard,
+                y: -window.innerHeight/10,
+                duration: 500,
+                ease: 'Quad.easeOut',
+            });
+            thisglobal.tweens.add({
+                targets: yourcard,
+                y: -window.innerHeight/10,
+                duration: 500,
+                ease: 'Quad.easeOut',
+            });
+            cardmode = "sevenattack";
+            var randtmp = Math.floor(Math.random() * 9 + 1);
+            while (yourcards.includes(randtmp)) {
+                randtmp = Math.floor(Math.random() * 9 + 1);
+            }
+            yourcards.push(randtmp);
+            var aitelosecard = thisglobal.add.image(0, 0, cardImages[randtmp]);
+            aitelosecard.rotation = Phaser.Math.DegToRad(180);
+            const totalWidth = cards.length * (cardWidth + margin);
+            scaleFactor = window.innerWidth / totalWidth * 0.9;
+            aitelosecard.setDisplaySize(cardWidth * scaleFactor, cardHeight * scaleFactor);
+            thisglobal.tweens.add({
+                targets: aitelosecard,
+                rotation: Phaser.Math.DegToRad(-360), // 360度回転
+                x: window.innerWidth / 1.66, // 上に移動
+                y: window.innerHeight / 3,
+                duration: 500, // 500msで移動
+                ease: 'Quad.easeOut', // イージング
+            });
+            waitingnow(true, thisglobal, "捨てるカードを選んでください");
+            cards.forEach((card) => {
+                card.setTint(0xFFFFFF);
+                card.setInteractive();
+            });
+            truefalse = true;
+            while (truefalse) {
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
+            }
+
+        }
         async function runModel() {
             let tmp = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             let daserucard = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
