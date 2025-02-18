@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -65,6 +65,9 @@
         let truefalse = false;
         let cardmode = "normal";
         let thisglobal;
+        let lostcard;
+        let scoretxtme;
+        let scoretxtyou;
 
         const cardWidth = 100;
         const cardHeight = 150;
@@ -121,17 +124,24 @@
                         }
                         if(cardmode=="sevenattack"){
                             truefalse = false;
+                            lostcard = card;
+                            dialoghyouzityuu = "yes";
+                            sentakutyuucard = card.cardIndex+1;
                         }
                     }
                 });
                 card.on('pointerover', () => {
+                    if (dialoghyouzityuu == "no") {
                     if (card.zyoutai == 0) {
                         up(card, this);
                     }
+                    }
                 });
                 card.on('pointerout', () => {
+                    if (dialoghyouzityuu == "no") {
                     if (card.zyoutai == 0) {
                         down(card, this);
+                    }
                     }
                 });
 
@@ -177,6 +187,14 @@
             mypoint.fillStyle(0x0000ff, 1); // 色 (青) と不透明度 (1)
             mypoint.fillRect(0, 0, window.innerWidth/2, 50);
             mypoint.pointwidth = window.innerWidth/2;
+            scoretxtme = this.add.text(0, 0, `0`, {
+                font: window.innerWidth/25 +'px Arial',
+                fill: '#ffffff',
+            });
+            scoretxtyou = this.add.text(window.innerWidth/1.023, 0, `0`, {
+                font: window.innerWidth/25 +'px Arial',
+                fill: '#ffffff',
+            });
             previewscore(1,1,this);
             //エンターボタン
             enter = this.add.image(window.innerWidth / 1.1, window.innerHeight / 3, "enter").setInteractive();
@@ -219,10 +237,10 @@
                             allowOutsideClick: false
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                Swal.fire("AAA!!!", "", "success");
+                                Swal.fire("カードを選択してください!", "", "success");
                                 dialoghyouzityuu = "no";
                             } else if (result.isDenied) {
-                                Swal.fire("BBB!!!", "", "info");
+                                Swal.fire("たけうち!!!", "", "info");
                                 dialoghyouzityuu = "no";
                             }
                         });
@@ -304,6 +322,8 @@
                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
             }
             waitingnow(false, that, "相手を待機中");
+            mycards.push(sentakutyuucard);
+            yourcards.push(sentakutyuucardyou);
             //カードアニメーション
             truefalse = true;
             var cardanims = { j: 1 };
@@ -329,7 +349,15 @@
                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
             }
             var returndata = await winnercheck(sentakutyuucard, sentakutyuucardyou);
-            console.log(returndata)
+            if(before1==7){
+                await sevencardattack("me");
+            }
+            if(before2==7){
+                await sevencardattack("you");
+            }
+            if(before1==4||before2==4){
+                await fourcardattack();
+            }
             whoiswinner = returndata;
             if (returndata == "1p") {
                 winnercard(that, "my");
@@ -369,7 +397,6 @@
                         waitingnow(true, that, "行動不可能");
                         console.log("ランダムカード");
                         onCardClick(card, that);
-
                     }
                 } else { 
                     card.setTint(0xFFFFFF);
@@ -378,17 +405,43 @@
                 }
                 i++;
             });
-            sentakutyuucardyou = await runModel();
-            aitecard(that);
-            console.log(mycards)
-            console.log(yourcards)
-            countdown = 30; // カウントダウンの初期値（秒）
-            timerEvent = that.time.addEvent({
-                delay: 1000, // 1秒ごとに実行
-                callback: updateTimer,
-                callbackScope: this,
-                loop: true,
-            });
+            if (before2 == 8) {
+                cards.forEach((card) => {
+                    card.setTint(0xA9A9A9);
+                });
+            }
+            if (before1 == "") {
+                cards.forEach((card) => {
+                    card.setTint(0xFFFFFF);
+                });
+            }
+            if (myscore == 4 || youscore == 4 || mycards.length == 10 || yourcards.length == 10) {
+                Swal.fire({
+                    title: "勝利",
+                    width: 600,
+                    padding: "3em",
+                    color: "#716add",
+                    backdrop: `
+                        rgba(0,0,123,0.4)
+                        url("./nyancat.gif")
+                        left top
+                          `
+                });
+            } else {
+                sentakutyuucardyou = await runModel();
+                sentakutyuucard = "notdata";
+                aitecard(that);
+                console.log(mycards)
+                console.log(yourcards)
+                countdown = 30; // カウントダウンの初期値（秒）
+                timerEvent = that.time.addEvent({
+                    delay: 1000, // 1秒ごとに実行
+                    callback: updateTimer,
+                    callbackScope: this,
+                    loop: true,
+                });
+
+            }
         }
         function adjustCards(scene) {
             const totalWidth = cards.length * (cardWidth + margin);
@@ -663,6 +716,11 @@
 
         }
         function previewscore(my,you,that){
+            const colors = ['#EEE4DA', '#EDE0C8', '#F2B179', '#F59563'];
+            scoretxtme.setText(myscore);
+            scoretxtyou.setText(youscore);
+            scoretxtme.setColor(colors[myscore]);
+            scoretxtyou.setColor(colors[youscore]);
             var mypointmotion={width: mypoint.pointwidth};
             that.tweens.add({
                 targets: mypointmotion,
@@ -724,158 +782,339 @@
             }
         }
 
-var mybeforecard = "";
-var youbeforecard = "";
-var mybeforecardtmp = "a";
-var youbeforecardtmp = "a";
-var winner = "";
-var before1 = "";
-var before2 = "";
-async function winnercheck(myselectcard,youselectcard){
-    mycards.push(myselectcard);
-    yourcards.push(youselectcard);
-    if (myselectcard != youselectcard && myselectcard != 5 && youselectcard != 5) {
-        if (myselectcard > youselectcard) {
-            if (mybeforecard == 9 || youbeforecard == 9) {
-                winner = "you";
-            } else {
-                winner = "my";
+        var before1tmp = 0;
+        var before2tmp = 0;
+        var before1 = -1;
+        var before2 = -1;
+        var after1 = 0;
+        var after2 = 0;
+        var keep = 0;
+        var play = 0;
+        var draw = 0;
+        var back = 0;
+        var back1 = 0;
+        var back2 = 0;
+        var down1 = 0;
+        var down2 = 0;
+        async function winnercheck(p1, p2) {
+            if (p1 == 4 || p2 == 4) {
+                keep = p1;
+                p1 = p2;
+                p2 = keep;
             }
-            if (youbeforecard == 6 && myselectcard - youselectcard < 2) {
-                winner = "drow";
-            }
-            if (youselectcard != 5 && mybeforecard != 8) {
-                if (youselectcard == 1 && myselectcard == 10) {
-                    winner = "you";
+            if (before1tmp != 8) {
+                if (p2 == 6) {
+                    down1 = 1;
                 }
-                if (youselectcard == 4) {
-                    winner = "you";
+                if (p2 == 9) {
+                    back1 = 1;
                 }
-            }
-        } else {
-            if (mybeforecard == 9 || youbeforecard == 9) {
-                winner = "my";
-            } else {
-                winner = "you";
-            }
-            if (myselectcard == 6 && youselectcard - myselectcard < 2) {
-                winner = "drow";
-            }
-            if (myselectcard != 5 && youbeforecard != 8) {
-                if (myselectcard == 1 && youselectcard == 10) {
-                    winner = "my";
+                if (p2 == 1 && p1 == 10) {
+                    after2 = 11;
+                    back = -1;
+                    play = 1;
                 }
-                if (myselectcard == 4) {
-                    winner = "my";
+                if (p2 == 5) {
+                    draw = 1;
+                    play = 1;
                 }
             }
-        }
-    } else {
-        winner = "drow";
-        if (myselectcard == 5 && youbeforecard == 8) {
-            if (mybeforecard == 9 || youbeforecard == 9) {
-                winner = "my";
-            } else {
-                winner = "you";
+            if (before2tmp == 6 && down1 == 1) {
+                after1 = after1 - 1;
+                down1 = 0;
             }
-        }
-        if (youselectcard == 5 && mybeforecard == 8) {
-            if (mybeforecard == 9 || youbeforecard == 9) {
-                winner = "you";
-            } else {
-                winner = "my";
+            if (before2tmp == 9 && back1 == 1) {
+                back = back + 1;
+                back1 = 0;
             }
-        }
-    }
+            if (play == 0) {
+                after2 = p2 + after2;
+            }
+            play = 0;
 
-    if (myselectcard == 7 && youbeforecard != 8) {
-      console.log("ランダムに引く1p2p")
-      //await sevencardattack();
-    }
-    if (youselectcard == 7 && mybeforecard != 8) {
-      console.log("ランダムに引く1p2p")
-      //await sevencardattack();
-    }
-    
-    mybeforecard = myselectcard;
-    youbeforecard = youselectcard;
-    
-    if (myselectcard == 8 && winner == "you") {
-        youbeforecard = "";
-    }
-    if (youselectcard == 8 && winner == "my") {
-        mybeforecard = "";
-    }
-    if (myselectcard == 4 || youselectcard == 4) {
-        [mybeforecard, youbeforecard] = [youbeforecard, mybeforecard];
-    }
-    if(mybeforecardtmp==""){
-      before1 = "";
-    }else{
-      before1 = mybeforecard;
-    }
-    if(youbeforecardtmp==""){
-      before2 = "";
-    }else{
-      before1 = youbeforecard;
-    }
-    mybeforecardtmp = mybeforecard;
-    youbeforecardtmp = youbeforecard;
-    
-    if (winner == "my") {
-      return "1p";
-    }
-    if (winner == "you") {
-      return "2p";
-    }
-    if (winner == "drow") {
-      return "draw";
-    }
-}
+            if (before2tmp != 8) {
+                if (p1 == 6) {
+                    down2 = 1;
+                }
+                if (p1 == 9) {
+                    back2 = 1;
+                }
+                if (p1 == 1 && p2 == 10) {
+                    after1 = 11;
+                    back = -1;
+                    play = 1;
+                }
+                if (p1 == 5) {
+                    draw = 1;
+                    play = 1;
+                }
+            }
+            if (before1tmp == 6 && down2 == 1) {
+                after2 = after2 - 1;
+                down2 = 0;
+            }
+            if (before1tmp == 9 && back2 == 1) {
+                back = back + 1;
+                back2 = 0;
+            }
+            if (play == 0) {
+                after1 = p1 + after1;
+            }
+            play = 0;
+
+            if (back == 1) {
+                after1 = 11 - after1;
+                after2 = 11 - after2;
+            }
+            if (draw == 1) {
+                after1 = 0;
+                after2 = 0;
+            }
+            draw = 0;
+            back = 0;
+            before1tmp = p1;
+            before2tmp = p2;
+            if (before1 == 8 && before2 != 8) {
+                    before2 = 0;
+            } else {
+                before2 = before2tmp;
+            }
+            if (before2 == 8 && before1 != 8) {
+                before1 = 0;
+            } else {
+                before1 = before1tmp;
+            }
+            if (before1 == -1) {
+                before1 = before1tmp;
+            }
+            if (before2 == -1) {
+                before2 = before2tmp;
+            }
+            
+            if (after1 > after2) {
+                after1 = 0;
+                after2 = 0;
+                return "1p";
+            }
+            if (after1 < after2) {
+                after1 = 0;
+                after2 = 0;
+                return "2p";
+            }
+            if (after1 == after2) {
+                after1 = 0;
+                after2 = 0;
+                return "draw";
+            }
+        }
         async function sevencardattack(whoattack) {
-            thisglobal.tweens.add({
-                targets: mycard,
-                y: -window.innerHeight/10,
-                duration: 500,
-                ease: 'Quad.easeOut',
-            });
-            thisglobal.tweens.add({
-                targets: yourcard,
-                y: -window.innerHeight/10,
-                duration: 500,
-                ease: 'Quad.easeOut',
-            });
-            cardmode = "sevenattack";
-            var randtmp = Math.floor(Math.random() * 9 + 1);
-            while (yourcards.includes(randtmp)) {
-                randtmp = Math.floor(Math.random() * 9 + 1);
+            if (whoattack == "me") {
+                thisglobal.tweens.add({
+                    targets: mycard,
+                    y: window.innerHeight / -8,
+                    duration: 500,
+                    ease: 'Quad.easeOut',
+                });
+                thisglobal.tweens.add({
+                    targets: yourcard,
+                    y: window.innerHeight / -8,
+                    duration: 500,
+                    ease: 'Quad.easeOut',
+                });
+                cardmode = "sevenattack";
+                var randtmp = Math.floor(Math.random() * 9 + 1);
+                while (yourcards.includes(randtmp)) {
+                    randtmp = Math.floor(Math.random() * 9 + 1);
+                }
+                var aitelosecard = thisglobal.add.image(0, 0, cardImages[randtmp]);
+                aitelosecard.rotation = Phaser.Math.DegToRad(180);
+                const totalWidth = cards.length * (cardWidth + margin);
+                scaleFactor = window.innerWidth / totalWidth * 0.9;
+                aitelosecard.setDisplaySize(cardWidth * scaleFactor, cardHeight * scaleFactor);
+                thisglobal.tweens.add({
+                    targets: aitelosecard,
+                    rotation: Phaser.Math.DegToRad(-360), // 360度回転
+                    x: window.innerWidth / 1.66, // 上に移動
+                    y: window.innerHeight / 3,
+                    duration: 500, // 500msで移動
+                    ease: 'Quad.easeOut', // イージング
+                });
+                waitingnow(true, thisglobal, "捨てるカードを選んでください");
+                cards.forEach((card) => {
+                    card.setTint(0xFFFFFF);
+                    card.setInteractive();
+                });
+                truefalse = true;
+                while (truefalse) {
+                    await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
+                }
+                yourcards.push(randtmp);
+                mycards.push(sentakutyuucard);
+                thisglobal.tweens.add({
+                    targets: lostcard,
+                    x: window.innerWidth / 2.5, // 50ピクセル上に移動
+                    y: window.innerHeight / 3, // 50ピクセル上に移動
+                    duration: 500, // 500msで移動
+                    ease: 'Power2',
+                    onComplete: () => {
+                        thisglobal.tweens.add({
+                            targets: lostcard,
+                            rotation: Phaser.Math.DegToRad(90),
+                            duration: 1000,
+                            ease: 'Expo.InOut',
+                        });
+                        thisglobal.tweens.add({
+                            targets: aitelosecard,
+                            rotation: Phaser.Math.DegToRad(90),
+                            duration: 1000,
+                            ease: 'Expo.InOut',
+                            onComplete: () => {
+                                thisglobal.tweens.add({
+                                    targets: lostcard,
+                                    x: window.innerWidth / -10,
+                                    duration: 500,
+                                    ease: 'Quad.easeOut',
+                                });
+                                thisglobal.tweens.add({
+                                    targets: aitelosecard,
+                                    x: window.innerWidth / -10,
+                                    duration: 500,
+                                    ease: 'Quad.easeOut',
+                                    onComplete: () => {
+                                        aitelosecard.destroy();
+                                        dialoghyouzityuu = "no";
+                                        cardmode = "normal";
+                                        truefalse = true;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                while (!truefalse) {
+                    await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
+                }
+                cards.forEach((card) => {
+                    card.disableInteractive(); // カードをクリック不可にする
+                });
+                waitingnow(false, thisglobal, "捨てるカードを選んでください");
             }
-            yourcards.push(randtmp);
-            var aitelosecard = thisglobal.add.image(0, 0, cardImages[randtmp]);
-            aitelosecard.rotation = Phaser.Math.DegToRad(180);
-            const totalWidth = cards.length * (cardWidth + margin);
-            scaleFactor = window.innerWidth / totalWidth * 0.9;
-            aitelosecard.setDisplaySize(cardWidth * scaleFactor, cardHeight * scaleFactor);
-            thisglobal.tweens.add({
-                targets: aitelosecard,
-                rotation: Phaser.Math.DegToRad(-360), // 360度回転
-                x: window.innerWidth / 1.66, // 上に移動
-                y: window.innerHeight / 3,
-                duration: 500, // 500msで移動
-                ease: 'Quad.easeOut', // イージング
-            });
-            waitingnow(true, thisglobal, "捨てるカードを選んでください");
-            cards.forEach((card) => {
-                card.setTint(0xFFFFFF);
-                card.setInteractive();
-            });
-            truefalse = true;
-            while (truefalse) {
-                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
+            if (whoattack == "you") {
+                thisglobal.tweens.add({
+                    targets: mycard,
+                    y: window.innerHeight / -8,
+                    duration: 500,
+                    ease: 'Quad.easeOut',
+                });
+                thisglobal.tweens.add({
+                    targets: yourcard,
+                    y: window.innerHeight / -8,
+                    duration: 500,
+                    ease: 'Quad.easeOut',
+                });
+                var randtmp = Math.floor(Math.random() * 9 + 1);
+                while (mycards.includes(randtmp)) {
+                    randtmp = Math.floor(Math.random() * 9 + 1);
+                }
+                mycards.push(randtmp);
+                sentakutyuucardyou = await runModel();
+                var i = 1;
+                cards.forEach((card) => {
+                    if (i == randtmp) {
+                        card.setTint(0xFFFFFF);
+                        waitingnow(true, thisglobal, "行動不可能");
+                        console.log("ランダムカード");
+                        lostcard = card;
+                    }
+                    i++;
+                });
+                var aitelosecard = thisglobal.add.image(0, 0, cardImages[randtmp]);
+                aitelosecard.rotation = Phaser.Math.DegToRad(180);
+                const totalWidth = cards.length * (cardWidth + margin);
+                scaleFactor = window.innerWidth / totalWidth * 0.9;
+                aitelosecard.setDisplaySize(cardWidth * scaleFactor, cardHeight * scaleFactor);
+                thisglobal.tweens.add({
+                    targets: aitelosecard,
+                    rotation: Phaser.Math.DegToRad(-360), // 360度回転
+                    x: window.innerWidth / 1.66, // 上に移動
+                    y: window.innerHeight / 3,
+                    duration: 500, // 500msで移動
+                    ease: 'Quad.easeOut', // イージング
+                });
+                truefalse = true;
+                thisglobal.tweens.add({
+                    targets: lostcard,
+                    x: window.innerWidth / 2.5, // 50ピクセル上に移動
+                    y: window.innerHeight / 3, // 50ピクセル上に移動
+                    duration: 500, // 500msで移動
+                    ease: 'Power2',
+                    onComplete: () => {
+                        thisglobal.tweens.add({
+                            targets: lostcard,
+                            rotation: Phaser.Math.DegToRad(90),
+                            duration: 1000,
+                            ease: 'Expo.InOut',
+                        });
+                        thisglobal.tweens.add({
+                            targets: aitelosecard,
+                            rotation: Phaser.Math.DegToRad(90),
+                            duration: 1000,
+                            ease: 'Expo.InOut',
+                            onComplete: () => {
+                                thisglobal.tweens.add({
+                                    targets: lostcard,
+                                    x: window.innerWidth / -10,
+                                    duration: 500,
+                                    ease: 'Quad.easeOut',
+                                });
+                                thisglobal.tweens.add({
+                                    targets: aitelosecard,
+                                    x: window.innerWidth / -10,
+                                    duration: 500,
+                                    ease: 'Quad.easeOut',
+                                    onComplete: () => {
+                                        aitelosecard.destroy();
+                                        dialoghyouzityuu = "no";
+                                        cardmode = "normal";
+                                        truefalse = false;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                while (truefalse) {
+                    await new Promise(resolve => setTimeout(resolve, 100)); // 100ms 待機
+                }
+                waitingnow(false, thisglobal, "行動不可能");
             }
-
+        }
+        async function fourcardattack(){
+            await new Promise((resolve) => {
+                thisglobal.tweens.add({
+                    targets: mycard,
+                    x: window.innerWidth/1.66, // 50ピクセル上に移動
+                    y: window.innerHeight/3, // 50ピクセル上に移動
+                    rotation: Phaser.Math.DegToRad(360),
+                    duration: 1000, // 2秒かけて移動
+                    ease: 'Power2',
+                    onComplete: resolve // 終了時に `resolve()` を呼ぶ
+                });
+                thisglobal.tweens.add({
+                    targets: yourcard,
+                    x: window.innerWidth/2.5, // 50ピクセル上に移動
+                    y: window.innerHeight/3, // 50ピクセル上に移動
+                    rotation: Phaser.Math.DegToRad(-360),
+                    duration: 1000, // 2秒かけて移動
+                    ease: 'Power2',
+                    onComplete: resolve // 終了時に `resolve()` を呼ぶ
+                });
+                [mycard,yourcard]=[yourcard,mycard];
+            });
         }
         async function runModel() {
+            console.log(before1);
+            console.log(before2);
             let tmp = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             let daserucard = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
             if (before1 == 3 && whoiswinner == "1p") {
@@ -886,9 +1125,8 @@ async function winnercheck(myselectcard,youselectcard){
                 return randtmp;
             } else {
                 if (before1 == 2) {
-                    if (before2 - 2 <= i && before2 + 2 >= i) {
-                        dashcard = [before2 - 2, before2 - 1, before2 + 1, before2 + 2];
-                    }
+                    daserucard = [before2 - 2, before2 - 1, before2 + 1, before2 + 2];
+                    console.log(daserucard);
                 }
                 for (var i = 0; yourcards.length > i; i++) {
                     tmp[yourcards[i] - 1] = 1;
