@@ -1132,7 +1132,7 @@
                     tmp[yourcards[i] - 1] = 1;
                     tmp[mycards[i] + 9] = 1;
                 }
-                const model = await tf.loadLayersModel('tfjs_model/model.json');
+                const model = await tf.loadLayersModel('./tfjs_model/model.json');
                 const input = tf.tensor2d([tmp]);
                 const output = model.predict(input);
                 const result = output.arraySync()[0];
